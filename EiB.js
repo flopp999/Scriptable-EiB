@@ -175,7 +175,7 @@ async function readsettings() {
       alert.message = t("buymeacoffee") + "?";
       alert.addAction(t("noway"));
 			alert.addAction("Ko-fi");
-      alert.addCancelAction("Buymeacoffe");
+      alert.addCancelAction("Buymeacoffee");
       let response = await alert.present();
       if (response === -1) {
         Safari.open("https://buymeacoffee.com/flopp999");
