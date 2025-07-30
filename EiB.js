@@ -4,7 +4,7 @@
 // License: Personal use only. See LICENSE for details.
 // This script was created by Flopp999
 // Support me with a coffee https://www.buymeacoffee.com/flopp999 
-let version = 0.45
+let version = 0.46
 const baseURL = "https://api.checkwatt.se";
 let password;
 let username;
@@ -12,6 +12,7 @@ let mode;
 let modeStatus;
 let rpiSerial;
 let meterId;
+let siteId;
 let batteryCapacityKwh;
 let peakBought;
 let token;
@@ -57,7 +58,7 @@ if (!config.runsInWidget){
   await readsettings();
   await createVariables();
   //await start();
-  await createVariables();
+  //await createVariables();
 }
 
 if (config.runsInWidget){
@@ -220,7 +221,11 @@ async function getDetails() {
 }
 
 async function getPeakBought() {
-  const endpoint = `/ems/PeakBoughtMonth?month=2025-06`;
+	let datum = new Date();
+	let year = datum.getFullYear();
+	let month = String(datum.getMonth() + 1).padStart(2, '0'); // månader är 0-indexerade
+	let currentMonth = `${year}-${month}`;
+	const endpoint = `/ems/PeakBoughtMonth?month=${currentMonth}`;
   const url = baseURL + endpoint;
   const headers = {
     "Authorization": `Bearer ${token}`,
@@ -296,9 +301,7 @@ async function getStatus() {
 			} else {
 				modeStatus = "Unknown"
 			}
-
-			
-			
+			siteId = responsestatus[0]["SiteId"]
 			FpUpInKw = responsestatus[0]["FpUpInKw"]
 			FpDownInKw = responsestatus[0]["FpDownInKw"]
 			ChargingMax = responsestatus[0]["RelatedMeters"][0]["PeakAcKw"]
@@ -361,7 +364,7 @@ async function fetchRevenue(jwtToken) {
 		firstDayStr = `${firstDay.getFullYear()}-${(firstDay.getMonth() + 1).toString().padStart(2, '0')}-01`;
 		lastDayStr = `${lastDay.getFullYear()}-${(lastDay.getMonth() + 1).toString().padStart(2, '0')}-${lastDay.getDate().toString().padStart(2, '0')}`;
 		dayOneDayStr = `${dayOne.getFullYear()}-01-01`;
-		const endpoint = `/ems/revenue?fromDate=${firstDayStr}&toDate=${lastDayStr}`;
+		const endpoint = `/ems/revenue?${siteId}?from=${firstDayStr}&to=${lastDayStr}&resolution=day`;
 		const url = baseURL + endpoint;
 		const headers = {
 			"Authorization": `Bearer ${jwtToken}`,
@@ -832,9 +835,10 @@ async function Revenue() {
 
 async function createWidget(){
 	token = await loginAndGetToken();
-	await fetchRevenue(token);
+	
 	await getDetails();
 	await getRpiSerial();
+	await fetchRevenue(token);
 	await getStatus();
 	await getPeakBought();
 	
