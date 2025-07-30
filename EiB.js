@@ -296,7 +296,7 @@ async function getStatus() {
 			}
 			if (responsestatus[0]["Service"][0] == "off") {
 				modeStatus = t("deactivated")
-			} else if (responsestatus[0]["Service"][0] == "fcrd" || responsestatus[0]["Service"][0] == "sc") {
+			} else if (responsestatus[0]["Service"][0] == "fcrdup" || responsestatus[0]["Service"][0] == "fcrddown" || responsestatus[0]["Service"][0] == "fcrd" || responsestatus[0]["Service"][0] == "sc") {
 				modeStatus = t("activated")
 			} else {
 				modeStatus = "Unknown"
