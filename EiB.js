@@ -4,7 +4,7 @@
 // License: Personal use only. See LICENSE for details.
 // This script was created by Flopp999
 // Support me with a coffee https://www.buymeacoffee.com/flopp999 
-let version = 0.46
+let version = 0.47
 const baseURL = "https://api.checkwatt.se";
 let password;
 let username;
@@ -92,12 +92,12 @@ async function start() {
 async function updatecode() {
   try {
     const req = new Request("https://raw.githubusercontent.com/flopp999/Scriptable-EiB/main/Version.txt");
-    req.timeoutInterval = 1;
+    req.timeoutInterval = 5;
     const serverVersion = await req.loadString()
     if (version < serverVersion) {
       try {
         const req = new Request("https://raw.githubusercontent.com/flopp999/Scriptable-EiB/main/EiB.js");
-        req.timeoutInterval = 1;
+        req.timeoutInterval = 5;
         const response = await req.load();
         const status = req.response.statusCode;
         if (status !== 200) {
@@ -107,7 +107,7 @@ async function updatecode() {
         fm.writeString(module.filename, codeString);
 
         const reqTranslations = new Request("https://raw.githubusercontent.com/flopp999/Scriptable-EiB/main/Translations.json");
-        reqTranslations.timeoutInterval = 1;
+        reqTranslations.timeoutInterval = 5;
         const responseTranslations = await reqTranslations.load();
         const statusTranslations = reqTranslations.response.statusCode;
         if (statusTranslations !== 200) {
@@ -364,7 +364,7 @@ async function fetchRevenue(jwtToken) {
 		firstDayStr = `${firstDay.getFullYear()}-${(firstDay.getMonth() + 1).toString().padStart(2, '0')}-01`;
 		lastDayStr = `${lastDay.getFullYear()}-${(lastDay.getMonth() + 1).toString().padStart(2, '0')}-${lastDay.getDate().toString().padStart(2, '0')}`;
 		dayOneDayStr = `${dayOne.getFullYear()}-01-01`;
-		const endpoint = `/ems/revenue?${siteId}?from=${firstDayStr}&to=${lastDayStr}&resolution=day`;
+		const endpoint = `/revenue/${siteId}?from=${firstDayStr}&to=${lastDayStr}&resolution=day`;
 		const url = baseURL + endpoint;
 		const headers = {
 			"Authorization": `Bearer ${jwtToken}`,
@@ -373,12 +373,10 @@ async function fetchRevenue(jwtToken) {
 		const req = new Request(url);
 		req.method = "GET";
 		req.headers = headers;
-		req.timeoutInterval = 1;
+		req.timeoutInterval = 5;
 		try {
 			const revenue = await req.loadJSON();
-			
 			if (req.response.statusCode === 200) {
-				
 				const dataJSON = JSON.stringify(revenue, null ,2);
 				fm.writeString(filePathRevenues, dataJSON);
 			} else {
@@ -388,7 +386,7 @@ async function fetchRevenue(jwtToken) {
 			console.error("❌ Fel vid hämtning av month revenue:", err);
 		}
 
-		const endpointYear = `/ems/revenue?fromDate=${dayOneDayStr}&toDate=${lastDayStr}`;
+		const endpointYear = `/revenue/${siteId}?from=${dayOneDayStr}&to=${lastDayStr}&resolution=day`;
 		const urlYear = baseURL + endpointYear;
 		const headersYear = {
 			"Authorization": `Bearer ${jwtToken}`,
@@ -397,14 +395,10 @@ async function fetchRevenue(jwtToken) {
 		const reqYear = new Request(urlYear);
 		reqYear.method = "GET";
 		reqYear.headers = headersYear;
-		reqYear.timeoutInterval = 1;
-
-
+		reqYear.timeoutInterval = 5;
 		try {
 			const revenueYear = await reqYear.loadJSON();
-			
 			if (reqYear.response.statusCode === 200) {
-				
 				const dataJSON = JSON.stringify(revenueYear, null ,2);
 				fm.writeString(filePathRevenuesYear, dataJSON);
 			} else {
@@ -413,8 +407,6 @@ async function fetchRevenue(jwtToken) {
 		} catch (err) {
 			console.error("❌ Fel vid hämtning av year revenue:", err);
 		}
-
-		
 	}
 	
 	if (fm.fileExists(filePathRevenues)) {
@@ -442,12 +434,11 @@ async function fetchRevenue(jwtToken) {
 	revenue = JSON.parse(content);
 	// Få ut alla NetRevenue för fcrd
 	fcrdRevenues = revenue
-	.filter(item => item.Service === "fcrd")
+	.filter(item => item.ServiceName === "FCR-D")
 	.map(item => item.NetRevenue);
-
 	// Få ut alla NetRevenue för savings
 	savingsRevenues = revenue
-	.filter(item => item.Service === "savings")
+	.filter(item => item.ServiceName === "Savings")
 	.map(item => item.NetRevenue);
 	// Få ut alla NetRevenue för ffr
 	ffrRevenues = revenue
@@ -496,7 +487,7 @@ async function readTranslations() {
   if (!fm.fileExists(filePathTranslations)) {
     let url = "https://raw.githubusercontent.com/flopp999/Scriptable-EiB/main/Translations.json";
     let req = new Request(url);
-    req.timeoutInterval = 1;
+    req.timeoutInterval = 5;
     let content = await req.loadString();
     fm.writeString(filePathTranslations, content);
   }
@@ -733,7 +724,7 @@ async function Graph(day, graphOption) {
             }\
           }\
     }")
-    graphtoday.timeoutInterval = 1;
+    graphtoday.timeoutInterval = 5;
     const GRAPH = await new Request(graphtoday).loadImage()
     let chart = listwidget.addStack()
     chart.addImage(GRAPH) 
