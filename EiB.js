@@ -4,7 +4,7 @@
 // License: Personal use only. See LICENSE for details.
 // This script was created by Flopp999
 // Support me with a coffee https://www.buymeacoffee.com/flopp999 
-let version = 0.47
+let version = 0.48
 const baseURL = "https://api.checkwatt.se";
 let password;
 let username;
@@ -135,13 +135,13 @@ async function readsettings() {
     if (fm.fileExists(filePathSettings)) {
       let raw = fm.readString(filePathSettings);
       settings = JSON.parse(raw);
-			if (!settings.graphOption || settings.graphOption.length === 0) {
-  			settings.graphOption = {
-    		top: "bar",
-    		middle: "bar",
-    		bottom: "bar"
-  			}
-			}
+			if (!settings.graphOption || Object.keys(settings.graphOption).length === 0) {
+        settings.graphOption = {
+        top: "bar",
+        middle: "bar",
+        bottom: "bar"
+        }
+      }
 			if (!settings.username || settings.username.length === 0) {
   			settings.username = "username"
 			}
@@ -386,7 +386,7 @@ async function fetchRevenue(jwtToken) {
 			console.error("❌ Fel vid hämtning av month revenue:", err);
 		}
 
-		const endpointYear = `/revenue/${siteId}?from=${dayOneDayStr}&to=${lastDayStr}&resolution=day`;
+		const endpointYear = `/revenue/${siteId}?from=${dayOneDayStr}&to=${lastDayStr}&resolution=month`;
 		const urlYear = baseURL + endpointYear;
 		const headersYear = {
 			"Authorization": `Bearer ${jwtToken}`,
@@ -433,16 +433,16 @@ async function fetchRevenue(jwtToken) {
 	let content = fm.readString(filePathRevenues);
 	revenue = JSON.parse(content);
 	// Få ut alla NetRevenue för fcrd
-	fcrdRevenues = revenue
+	fcrdRevenues = revenue["Revenue"]
 	.filter(item => item.ServiceName === "FCR-D")
 	.map(item => item.NetRevenue);
 	// Få ut alla NetRevenue för savings
-	savingsRevenues = revenue
+	savingsRevenues = revenue["Revenue"]
 	.filter(item => item.ServiceName === "Savings")
 	.map(item => item.NetRevenue);
 	// Få ut alla NetRevenue för ffr
-	ffrRevenues = revenue
-	.filter(item => item.Service === "ffr")
+	ffrRevenues = revenue["Revenue"]
+	.filter(item => item.ServiceName === "FFR")
 	.map(item => item.NetRevenue);
 
 	//revenues = revenue.map(item => item.NetRevenue);
@@ -452,17 +452,17 @@ async function fetchRevenue(jwtToken) {
 	content = fm.readString(filePathRevenuesYear);
 	revenueYear = JSON.parse(content);
 	// Få ut alla NetRevenue för fcrd
-				fcrdRevenuesYear = revenueYear
-				.filter(item => item.Service === "fcrd")
+				fcrdRevenuesYear = revenueYear["Revenue"]
+				.filter(item => item.ServiceName === "FCR-D")
 				.map(item => item.NetRevenue);
 		
 				// Få ut alla NetRevenue för savings
-				savingsRevenuesYear = revenueYear
-				.filter(item => item.Service === "savings")
+				savingsRevenuesYear = revenueYear["Revenue"]
+				.filter(item => item.ServiceName === "Savings")
 				.map(item => item.NetRevenue);
 				// Få ut alla NetRevenue för ffr
-				ffrRevenuesYear = revenueYear
-				.filter(item => item.Service === "ffr")
+				ffrRevenuesYear = revenueYear["Revenue"]
+				.filter(item => item.ServiceName === "FFR")
 				.map(item => item.NetRevenue);
 
 				//revenues = revenue.map(item => item.NetRevenue);
@@ -829,8 +829,9 @@ async function createWidget(){
 	
 	await getDetails();
 	await getRpiSerial();
-	await fetchRevenue(token);
+	
 	await getStatus();
+	await fetchRevenue(token);
 	await getPeakBought();
 	
 	const date = new Date();
